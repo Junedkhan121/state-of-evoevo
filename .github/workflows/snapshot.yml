@@ -25,6 +25,7 @@ jobs:
       - run: pip install -r requirements.txt
 
       - run: python snapshot.py
+      - run: python snapshot_trending.py
 
       - name: Commit Changes
         run: |
