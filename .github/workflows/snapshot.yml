@@ -16,22 +16,34 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - name: Checkout Repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - run: pip install -r requirements.txt
+      - name: Install Requirements
+        run: |
+          pip install -r requirements.txt
 
-      - run: python snapshot.py
-      - run: python snapshot_trending.py
+      - name: Run Main Snapshot
+        run: |
+          python snapshot.py
+
+      - name: Run Trending Snapshot
+        run: |
+          python snapshot_trending.py
 
       - name: Commit Changes
         run: |
-          git config user.name github-actions
-          git config user.email actions@github.com
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
 
           git add history.csv
-          git commit -m "snapshot update" || exit 0
+          git add trending_agents.csv
+
+          git commit -m "Auto snapshot update" || exit 0
+
           git push
