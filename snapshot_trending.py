@@ -1,31 +1,28 @@
 import requests
 import csv
-import os
 from datetime import datetime
 
-URL = "https://api.evoevo.ai/v1/square/feed?limit=100&type=agent&chain_id=16661"
+url = "https://api.evoevo.ai/v1/square/feed?limit=100&type=agent&chain_id=16661"
 
-data = requests.get(URL).json()
+print("Fetching:", url)
+
+r = requests.get(url)
+
+print("Status:", r.status_code)
+
+data = r.json()
+
+print("Keys:", data.keys())
+
+print("Items found:", len(data.get("items", [])))
 
 timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
-csv_file = "trending_agents.csv"
+with open("trending_agents.csv", "a", newline="", encoding="utf-8") as f:
 
-file_exists = os.path.isfile(csv_file)
-
-with open(csv_file, "a", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
 
-    if not file_exists:
-        writer.writerow([
-            "timestamp",
-            "rank",
-            "agent_id",
-            "name",
-            "points",
-            "win_rate",
-            "streak"
-        ])
+    count = 0
 
     for item in data.get("items", []):
 
@@ -40,3 +37,7 @@ with open(csv_file, "a", newline="", encoding="utf-8") as f:
             profile.get("win_rate_pct"),
             profile.get("current_win_streak")
         ])
+
+        count += 1
+
+print("Rows written:", count)
