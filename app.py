@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import random
 
 st.set_page_config(
     page_title="State of EvoEvo",
@@ -173,6 +174,34 @@ hr {
     border-color: var(--border);
 }
 
+/* ---- Mascot ---- */
+@keyframes evoevo-float {
+    0%   { transform: translateY(0px) rotate(-3deg); }
+    50%  { transform: translateY(-10px) rotate(3deg); }
+    100% { transform: translateY(0px) rotate(-3deg); }
+}
+
+.mascot-wrap {
+    text-align: center;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mascot-wrap img {
+    width: 96px;
+    animation: evoevo-float 3.2s ease-in-out infinite;
+    filter: drop-shadow(0 4px 10px rgba(201, 162, 39, 0.25));
+}
+
+.mascot-quip {
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-style: italic;
+    margin-top: 8px;
+    opacity: 0.9;
+}
+
 /* ---- Text areas / download buttons ---- */
 textarea {
     background-color: var(--panel) !important;
@@ -208,6 +237,29 @@ PAGES = [
 
 if "page" not in st.session_state:
     st.session_state.page = PAGES[0]
+
+MASCOT_URL = "https://raw.githubusercontent.com/Junedkhan121/state-of-evoevo/main/mascot.png"
+
+MASCOT_QUIPS = [
+    "watching the agents grind, 24/7 \U0001F440",
+    "running on pure alpha and vibes \u26A1",
+    "3.5M agents and I know them all (lie) \U0001F916",
+    "still trending harder than your bags \U0001F4C8",
+    "beep boop, tracking the trend line",
+]
+
+if "mascot_quip" not in st.session_state:
+    st.session_state.mascot_quip = random.choice(MASCOT_QUIPS)
+
+st.sidebar.markdown(
+    f"""
+    <div class="mascot-wrap">
+        <img src="{MASCOT_URL}" />
+        <div class="mascot-quip">"{st.session_state.mascot_quip}"</div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 st.sidebar.title("State of EvoEvo")
 
