@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
-import random
 
 st.set_page_config(
     page_title="State of EvoEvo",
     layout="wide"
 )
+
+MASCOT_URL = "https://raw.githubusercontent.com/Junedkhan121/state-of-evoevo/main/mascot.png"
 
 # =========================
 # THEME
@@ -174,39 +175,90 @@ hr {
     border-color: var(--border);
 }
 
-/* ---- Mascot ---- */
-@keyframes evoevo-float {
-    0%   { transform: translateY(0px) rotate(-3deg); }
-    50%  { transform: translateY(-10px) rotate(3deg); }
-    100% { transform: translateY(0px) rotate(-3deg); }
-}
-
-.mascot-wrap {
-    text-align: center;
-    margin-bottom: 18px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
-}
-
-.mascot-wrap img {
-    width: 96px;
-    animation: evoevo-float 3.2s ease-in-out infinite;
-    filter: drop-shadow(0 4px 10px rgba(201, 162, 39, 0.25));
-}
-
-.mascot-quip {
-    color: var(--accent);
-    font-size: 0.75rem;
-    font-style: italic;
-    margin-top: 8px;
-    opacity: 0.9;
-}
-
 /* ---- Text areas / download buttons ---- */
 textarea {
     background-color: var(--panel) !important;
     color: var(--text) !important;
     border: 1px solid var(--border) !important;
+}
+
+/* ---- Mascot: header ---- */
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.header-row .mascot-topright img {
+    width: 56px;
+    border-radius: 10px;
+}
+
+/* ---- Mascot: sidebar ---- */
+.sidebar-mascot {
+    text-align: center;
+    margin: 4px 0 14px 0;
+}
+
+.sidebar-mascot img {
+    width: 64px;
+    opacity: 0.95;
+}
+
+/* ---- Mascot: floating ---- */
+.mascot-floating-wrap {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.mascot-floating-wrap img {
+    width: 68px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.45));
+    pointer-events: none;
+}
+
+.mascot-ticker {
+    position: relative;
+    background-color: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 0.76rem;
+    color: var(--text-dim);
+    min-width: 210px;
+    max-width: 250px;
+    height: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.mascot-floating-wrap.mascot-awake .mascot-ticker {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mascot-ticker span {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 7px;
+    opacity: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 </style>
@@ -219,9 +271,16 @@ textarea {
 def page_header(title, subtitle=None, eyebrow="State of EvoEvo"):
     st.markdown(f"""
     <div class="page-header">
-        <div class="eyebrow">{eyebrow}</div>
-        <h1>{title}</h1>
-        {f'<div class="subtitle">{subtitle}</div>' if subtitle else ''}
+        <div class="header-row">
+            <div>
+                <div class="eyebrow">{eyebrow}</div>
+                <h1>{title}</h1>
+                {f'<div class="subtitle">{subtitle}</div>' if subtitle else ''}
+            </div>
+            <div class="mascot-topright">
+                <img src="{MASCOT_URL}" />
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -232,36 +291,19 @@ def page_header(title, subtitle=None, eyebrow="State of EvoEvo"):
 PAGES = [
     "Network Growth",
     "Reports Center",
-    "Trending Intelligence"
+    "Network Insights"
 ]
 
 if "page" not in st.session_state:
     st.session_state.page = PAGES[0]
 
-MASCOT_URL = "https://raw.githubusercontent.com/Junedkhan121/state-of-evoevo/main/mascot.png"
-
-MASCOT_QUIPS = [
-    "watching the agents grind, 24/7 \U0001F440",
-    "running on pure alpha and vibes \u26A1",
-    "3.5M agents and I know them all (lie) \U0001F916",
-    "still trending harder than your bags \U0001F4C8",
-    "beep boop, tracking the trend line",
-]
-
-if "mascot_quip" not in st.session_state:
-    st.session_state.mascot_quip = random.choice(MASCOT_QUIPS)
-
-st.sidebar.markdown(
-    f"""
-    <div class="mascot-wrap">
-        <img src="{MASCOT_URL}" />
-        <div class="mascot-quip">"{st.session_state.mascot_quip}"</div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 st.sidebar.title("State of EvoEvo")
+
+st.sidebar.markdown(f"""
+<div class="sidebar-mascot">
+    <img src="{MASCOT_URL}" />
+</div>
+""", unsafe_allow_html=True)
 
 for p in PAGES:
     if st.sidebar.button(
@@ -274,6 +316,180 @@ for p in PAGES:
         st.rerun()
 
 page = st.session_state.page
+
+# =========================
+# FLOATING MASCOT
+# =========================
+
+MASCOT_MESSAGES = [
+    "Tracking the EvoEvo economy...",
+    "Scanning agents...",
+    "Monitoring network growth...",
+    "Watching trending agents...",
+    "Analyzing prediction markets...",
+    "Calculating weekly growth...",
+    "Refreshing platform metrics...",
+    "Checking win streaks...",
+    "Comparing this week to last...",
+    "Watching for new agents..."
+]
+
+_n = len(MASCOT_MESSAGES)
+_per_message_seconds = 3.2
+_total_seconds = _n * _per_message_seconds
+_slot_pct = 100 / _n
+_fade_pct = _slot_pct * 0.12
+
+# Built without f-string braces to avoid Python formatting ambiguity, and
+# as single-line strings (no leading indentation) so Streamlit's
+# markdown-to-HTML conversion never mistakes an indented line for a
+# CommonMark indented code block.
+_mascot_keyframes_css = (
+    "<style>@keyframes mascotMsgFade{0%{opacity:0}"
+    + format(_fade_pct, ".2f") + "%{opacity:1}"
+    + format(_slot_pct - _fade_pct, ".2f") + "%{opacity:1}"
+    + format(_slot_pct, ".2f") + "%{opacity:0}"
+    + "100%{opacity:0}}</style>"
+)
+
+_ticker_spans = "".join(
+    '<span style="animation:mascotMsgFade ' + str(_total_seconds) + 's infinite;'
+    + 'animation-delay:-' + str(i * _per_message_seconds) + 's;">' + msg + '</span>'
+    for i, msg in enumerate(MASCOT_MESSAGES)
+)
+
+# JS lives on the <img onload="..."> attribute (not a <script> tag) because
+# Streamlit inserts markdown HTML via innerHTML, and browsers never execute
+# <script> tags inserted that way. Built as a plain string (no f-string) so
+# none of the JS braces need escaping, then flattened to one line and
+# quotes swapped so it survives sitting inside an HTML attribute untouched.
+_mascot_drag_js = """
+(function(){
+    var wrap = document.getElementById('evoevo-mascot-wrap');
+    if (!wrap) return;
+    if (wrap.getAttribute('data-mascot-bound') === '1') return;
+    wrap.setAttribute('data-mascot-bound', '1');
+
+    var dragging = false;
+    var startX, startY, origX, origY;
+    var lastX, lastY, lastT;
+    var vx = 0, vy = 0;
+    var animId = null;
+
+    function getPos(e){
+        if (e.touches && e.touches.length) {
+            return {x: e.touches[0].clientX, y: e.touches[0].clientY};
+        }
+        return {x: e.clientX, y: e.clientY};
+    }
+
+    function cancelAnim(){
+        if (animId) { cancelAnimationFrame(animId); animId = null; }
+    }
+
+    function onDown(e){
+        cancelAnim();
+        dragging = true;
+        wrap.style.cursor = 'grabbing';
+        var p = getPos(e);
+        var rect = wrap.getBoundingClientRect();
+        origX = rect.left;
+        origY = rect.top;
+        startX = p.x;
+        startY = p.y;
+        lastX = p.x;
+        lastY = p.y;
+        lastT = Date.now();
+        wrap.style.left = origX + 'px';
+        wrap.style.top = origY + 'px';
+        wrap.style.right = 'auto';
+        wrap.style.bottom = 'auto';
+        e.preventDefault();
+    }
+
+    function onMove(e){
+        if (!dragging) return;
+        var p = getPos(e);
+        var dx = p.x - startX;
+        var dy = p.y - startY;
+        wrap.style.left = (origX + dx) + 'px';
+        wrap.style.top = (origY + dy) + 'px';
+
+        var now = Date.now();
+        var dt = now - lastT;
+        if (dt > 0) {
+            vx = (p.x - lastX) / dt;
+            vy = (p.y - lastY) / dt;
+        }
+        lastX = p.x;
+        lastY = p.y;
+        lastT = now;
+        e.preventDefault();
+    }
+
+    function onUp(e){
+        if (!dragging) return;
+        dragging = false;
+        wrap.style.cursor = 'grab';
+        var movedDist = Math.hypot(lastX - startX, lastY - startY);
+        if (movedDist < 6) {
+            wrap.classList.add('mascot-awake');
+        } else {
+            throwIt();
+        }
+    }
+
+    function throwIt(){
+        var friction = 0.95;
+        function step(){
+            vx *= friction;
+            vy *= friction;
+
+            var rect = wrap.getBoundingClientRect();
+            var left = rect.left + vx * 16;
+            var top = rect.top + vy * 16;
+
+            var maxLeft = window.innerWidth - rect.width;
+            var maxTop = window.innerHeight - rect.height;
+
+            if (left < 0) { left = 0; vx *= -0.6; }
+            if (left > maxLeft) { left = maxLeft; vx *= -0.6; }
+            if (top < 0) { top = 0; vy *= -0.6; }
+            if (top > maxTop) { top = maxTop; vy *= -0.6; }
+
+            wrap.style.left = left + 'px';
+            wrap.style.top = top + 'px';
+
+            if (Math.abs(vx) > 0.02 || Math.abs(vy) > 0.02) {
+                animId = requestAnimationFrame(step);
+            }
+        }
+        animId = requestAnimationFrame(step);
+    }
+
+    wrap.addEventListener('mousedown', onDown);
+    wrap.addEventListener('touchstart', onDown, {passive: false});
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('touchmove', onMove, {passive: false});
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchend', onUp);
+
+    setTimeout(function(){
+        wrap.classList.add('mascot-awake');
+    }, 10000);
+})();
+""".replace("\n", " ").replace('"', "&quot;")
+
+_mascot_html = (
+    '<div id="evoevo-mascot-wrap" class="mascot-floating-wrap">'
+    + '<div class="mascot-ticker">' + _ticker_spans + '</div>'
+    + '<img src="' + MASCOT_URL + '" '
+    + 'style="width:68px !important;height:auto !important;max-width:68px !important;" '
+    + 'onload="' + _mascot_drag_js + '" />'
+    + '</div>'
+)
+
+st.markdown(_mascot_keyframes_css + _mascot_html, unsafe_allow_html=True)
 
 # =========================================
 # PAGE 1 - NETWORK GROWTH (resets weekly)
@@ -1049,186 +1265,234 @@ Predictions: {last_month_stats['latest']['opinions']:,}
                 key="dl_month_last"
             )
 
-elif page == "Trending Intelligence":
+elif page == "Network Insights":
 
-    # =========================
-    # LOAD DATA
-    # =========================
+    HISTORY_URL = "https://raw.githubusercontent.com/Junedkhan121/state-of-evoevo/main/history.csv"
 
-    CSV_URL = "https://raw.githubusercontent.com/Junedkhan121/state-of-evoevo/main/trending_agents.csv"
+    history = pd.read_csv(HISTORY_URL)
 
-    df = pd.read_csv(CSV_URL)
+    history["timestamp"] = pd.to_datetime(history["timestamp"])
 
-    # =========================
-    # HEADER
-    # =========================
+    history = history.sort_values("timestamp").reset_index(drop=True)
+
+    latest = history.iloc[-1]
 
     page_header(
-        "Trending Intelligence",
-        subtitle="Independent intelligence platform tracking historical EvoEvo agent trends"
+        "Network Insights",
+        subtitle="Token efficiency trends and all-time growth records"
     )
 
-    # =========================
-    # OVERVIEW
-    # =========================
+    # =========================================
+    # PART 1 - TOKEN & EFFICIENCY INSIGHTS
+    # =========================================
 
-    total_records = len(df)
+    st.subheader("Token & Efficiency Insights")
 
-    unique_agents = df["name"].nunique()
+    tokens_per_agent = (
+        latest["tokens"] / latest["agents"]
+        if latest["agents"] else 0
+    )
 
-    snapshots = df["timestamp"].nunique()
+    tokens_per_prediction = (
+        latest["tokens"] / latest["opinions"]
+        if latest["opinions"] else 0
+    )
 
-    latest_snapshot = df["timestamp"].max()
+    memories_per_agent = (
+        latest["memories"] / latest["agents"]
+        if latest["agents"] else 0
+    )
+
+    predictions_per_market = (
+        latest["opinions"] / latest["markets"]
+        if latest["markets"] else 0
+    )
 
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric(
-        "Records",
-        f"{total_records:,}"
+        "Total LLM Tokens",
+        f"{latest['tokens']:,}"
     )
 
     c2.metric(
-        "Unique Agents",
-        f"{unique_agents:,}"
+        "Tokens per Agent",
+        f"{tokens_per_agent:,.0f}"
     )
 
     c3.metric(
-        "Snapshots",
-        f"{snapshots:,}"
+        "Tokens per Prediction",
+        f"{tokens_per_prediction:,.0f}"
     )
 
     c4.metric(
-        "Latest Snapshot",
-        latest_snapshot
+        "Memories per Agent",
+        f"{memories_per_agent:,.2f}"
     )
 
-    # =========================
-    # TRENDING KING
-    # =========================
-
-    leaderboard = (
-        df.groupby("name")
-        .size()
-        .reset_index(name="appearances")
-        .sort_values(
-            "appearances",
-            ascending=False
-        )
+    st.caption(
+        "Efficiency ratios based on the latest snapshot \u2014 how much "
+        "token and memory activity each agent or prediction represents "
+        "right now."
     )
 
-    king = leaderboard.iloc[0]
+    st.subheader("Token Consumption Over Time")
 
-    st.subheader("Top Trending Agent")
-
-    st.metric(
-        king["name"],
-        f"{king['appearances']} appearances"
+    st.line_chart(
+        history.set_index("timestamp")["tokens"]
     )
 
-    # =========================
-    # TOP AGENTS
-    # =========================
+    st.subheader("Efficiency Trend: Tokens per Prediction")
 
-    st.subheader("Top Trending Agents")
+    eff_df = history.copy()
 
-    st.dataframe(
-        leaderboard.head(25),
-        use_container_width=True,
-        hide_index=True
+    eff_df["tokens_per_prediction"] = (
+        eff_df["tokens"] / eff_df["opinions"].replace(0, pd.NA)
     )
 
-    # =========================
-    # TOP 10 CHART
-    # =========================
-
-    st.subheader("Top 10 Trending Agents")
-
-    st.bar_chart(
-        leaderboard
-        .head(10)
-        .set_index("name")
-        ["appearances"]
+    st.line_chart(
+        eff_df.set_index("timestamp")["tokens_per_prediction"]
     )
 
-    # =========================
-    # LATEST SNAPSHOT
-    # =========================
-
-    latest_time = df["timestamp"].max()
-
-    latest_df = df[
-        df["timestamp"] == latest_time
-    ]
-
-    st.subheader("Current Trending Agents")
-
-    st.dataframe(
-        latest_df[
-            [
-                "rank",
-                "name",
-                "points",
-                "win_rate",
-                "streak"
-            ]
-        ]
-        .sort_values("rank"),
-        use_container_width=True,
-        hide_index=True
+    st.caption(
+        "A falling line means predictions are getting cheaper, in tokens, "
+        "to produce as the network scales. A rising line means the "
+        "opposite \u2014 each prediction is costing more tokens over time."
     )
 
-    # =========================
-    # HIGHEST STREAKS
-    # =========================
+    # =========================================
+    # PART 2 - GROWTH RECORDS / MILESTONES
+    # =========================================
 
-    st.subheader("Highest Streaks Ever Seen")
+    st.markdown("---")
 
-    streaks = (
-        df.groupby("name")["streak"]
-        .max()
+    st.subheader("Growth Records")
+
+    st.caption(
+        "The single biggest jumps ever recorded in one day, pulled from "
+        "every daily snapshot in tracked history."
+    )
+
+    daily = history.copy()
+
+    daily["date"] = daily["timestamp"].dt.date
+
+    daily_last = (
+        daily
+        .groupby("date")
+        .last()
         .reset_index()
-        .sort_values(
-            "streak",
+        .sort_values("date")
+    )
+
+    daily_last["agents_diff"] = daily_last["agents"].diff()
+    daily_last["memories_diff"] = daily_last["memories"].diff()
+    daily_last["opinions_diff"] = daily_last["opinions"].diff()
+
+    if daily_last["agents_diff"].notna().any():
+
+        best_agent_day = daily_last.loc[daily_last["agents_diff"].idxmax()]
+        best_memory_day = daily_last.loc[daily_last["memories_diff"].idxmax()]
+        best_prediction_day = daily_last.loc[daily_last["opinions_diff"].idxmax()]
+
+        r1, r2, r3 = st.columns(3)
+
+        r1.metric(
+            "Biggest Single-Day Agent Growth",
+            f"{int(best_agent_day['agents_diff']):,}",
+            best_agent_day["date"].strftime("%b %d, %Y")
+        )
+
+        r2.metric(
+            "Biggest Single-Day Memory Growth",
+            f"{int(best_memory_day['memories_diff']):,}",
+            best_memory_day["date"].strftime("%b %d, %Y")
+        )
+
+        r3.metric(
+            "Biggest Single-Day Prediction Growth",
+            f"{int(best_prediction_day['opinions_diff']):,}",
+            best_prediction_day["date"].strftime("%b %d, %Y")
+        )
+
+    else:
+
+        st.info(
+            "Not enough daily history yet to identify single-day records. "
+            "Check back after a few days of tracking."
+        )
+
+    st.markdown("---")
+
+    st.subheader("Milestone Timeline")
+
+    st.caption(
+        "Moments the network crossed a new round-number threshold for "
+        "each metric."
+    )
+
+    def pick_step(value):
+
+        if value <= 0:
+            return 1
+
+        digits = len(str(int(value)))
+
+        return 10 ** max(digits - 2, 0)
+
+    def milestone_crossings(df, column, label):
+
+        step = pick_step(df[column].max())
+
+        crossed = []
+        last_hit = 0
+
+        for _, row in df.iterrows():
+
+            val = row[column]
+            threshold = (val // step) * step
+
+            if threshold > last_hit and threshold > 0:
+
+                crossed.append({
+                    "Metric": label,
+                    "Threshold": int(threshold),
+                    "Reached On": row["timestamp"]
+                })
+
+                last_hit = threshold
+
+        return crossed
+
+    all_milestones = []
+    all_milestones += milestone_crossings(history, "agents", "Agents")
+    all_milestones += milestone_crossings(history, "memories", "Memories")
+    all_milestones += milestone_crossings(history, "opinions", "Predictions")
+    all_milestones += milestone_crossings(history, "markets", "Markets")
+
+    milestone_df = pd.DataFrame(all_milestones)
+
+    if milestone_df.empty:
+
+        st.info("No milestone crossings recorded yet.")
+
+    else:
+
+        milestone_df = milestone_df.sort_values(
+            "Reached On",
             ascending=False
         )
-    )
 
-    st.dataframe(
-        streaks.head(20),
-        use_container_width=True,
-        hide_index=True
-    )
-
-    # =========================
-    # HIGHEST WIN RATE
-    # =========================
-
-    st.subheader("Highest Win Rates")
-
-    winrates = (
-        df.groupby("name")["win_rate"]
-        .max()
-        .reset_index()
-        .sort_values(
-            "win_rate",
-            ascending=False
+        milestone_df["Reached On"] = milestone_df["Reached On"].dt.strftime(
+            "%b %d, %Y %I:%M %p"
         )
-    )
 
-    st.dataframe(
-        winrates.head(20),
-        use_container_width=True,
-        hide_index=True
-    )
-
-    # =========================
-    # RAW DATA
-    # =========================
-
-    with st.expander("View Raw Dataset"):
+        milestone_df["Threshold"] = milestone_df["Threshold"].apply(
+            lambda x: f"{x:,}"
+        )
 
         st.dataframe(
-            df,
+            milestone_df,
             use_container_width=True,
             hide_index=True
         )
